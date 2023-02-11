@@ -8,6 +8,13 @@ import threading
 from contextlib import contextmanager, suppress
 from heapq import heappop
 
+try:
+    import uvloop
+    use_uvloop = True
+except ImportError:
+    uvloop = None
+    use_uvloop = False
+
 
 def apply(loop=None):
     """Patch asyncio to make its event loop reentrant."""
@@ -171,7 +178,10 @@ def _patch_loop(loop):
     if hasattr(loop, '_nest_patched'):
         return
     if not isinstance(loop, asyncio.BaseEventLoop):
-        raise ValueError('Can\'t patch loop of type %s' % type(loop))
+        if use_uvloop and not isinstance(loop, uvloop.Loop):
+            raise ValueError('Can\'t patch loop of type %s' % type(loop))
+        else:
+            raise ValueError('Can\'t patch loop of type %s' % type(loop))
     cls = loop.__class__
     cls.run_forever = run_forever
     cls.run_until_complete = run_until_complete
