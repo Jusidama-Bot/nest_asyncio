@@ -129,7 +129,8 @@ def _patch_loop(loop):
     @contextmanager
     def manage_run(self):
         """Set up the loop for running."""
-        self._check_closed()
+        if hasattr(self, "_check_closed"):
+            self._check_closed()
         old_thread_id = self._thread_id
         old_running_loop = events._get_running_loop()
         try:
